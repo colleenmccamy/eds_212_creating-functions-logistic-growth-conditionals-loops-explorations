@@ -1,0 +1,178 @@
+---
+title: "Day 4 Notes and Comp Time"
+author: "Colleen McCamy"
+date: "2022-08-11"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+
+library(tidyverse)
+
+```
+
+# Brain warm-up - creating a for loop
+
+```{r}
+
+# total time for any two quater miles; find all the times for any consecutive two quarters
+
+quarter_splits <- c(1.0, 1.1, 1.2, 1.1, 1.4, 1.5, 1.6, 1.4)
+
+for (i in seq_along(quarter_splits)){
+  print(quarter_splits[i] + quarter_splits [i+1])
+}
+
+
+# need to specific where the i is indexing from - thus include the vector[i]
+
+```
+
+# Intro to functions
+making a function to double the user input
+
+```{r}
+
+double_this <- function(my_value){
+  print(2 * my_value)
+}
+
+# now using the function lik
+
+double_this(my_value = 14)
+
+double_this(200)
+
+# body of function tell it what to do
+
+# don't need to specify argument name but need to have the same order
+
+double_this(c(1, 2, 10, 100, 175))
+
+#can use a vector too
+```
+
+
+Write a function that asks for a users name and age and returns "I'm [name] and I am [age] years old
+
+```{r}
+
+age_name <- function(name, age) {
+  print(paste("I'm", name, "and I am", age, "years old." ))
+}
+
+age_name(name = "Colleen", age = 26)
+
+# need to use paste where there are different types of data
+
+```
+
+# Looking at function documentation
+Docs contains: 
+- Title of function
+- what the function name is and package in the top left
+- description = brief summary
+- usage = an idea of what the actual structure is of the function and what arguments are required for the function
+- arguments = idea of default settings that are included
+- Value = ideas of what outputs are from model functions; can show what all the different outputs are stored in that list
+
+# Function with a conditional
+
+```{r}
+
+convert_animal_age <- function(animal, human_age){
+  if (animal == "dog"){
+    print(human_age *7)
+  } else if (animal == "goat"){
+    print(human_age * 4.7)
+  } else {
+    print("Please input a dog or goat")
+    }
+}
+
+convert_animal_age(animal = "dog", human_age = 12)
+convert_animal_age(animal = "goat", human_age = 14)
+convert_animal_age(animal = "fish", human_age = 2)
+```
+
+# Functions with Data Bases
+
+```{r}
+
+#creatig a data frame with tribble, ~"name" = column names then hit enter and populate what will be in those coumns
+
+dog_choice <- tribble(
+  ~dog_name, ~food,
+  "Khora", "everything",
+  "Teddy", "salmon",
+  "Waffle", "pancakes",
+  "Banjo", "chicken"
+)
+
+# within the function pulling information from the data frame to populate a statement, wrangling the data first
+
+dog_menu <- function(name){
+  my_sub <- filter(dog_choice, dog_name == name)
+  print(paste0("My name is ", my_sub$dog_name, " and my favorite food is ", my_sub$food, "!"))
+}
+
+dog_menu("Banjo")
+dog_menu("Waffle")
+
+#still have a data frame but just 
+
+# sort or filter whatever it was and pull in the information from the 
+
+# first create a subset of the users using filter
+
+```
+
+Filtering Options
+filter is the rows functions 
+
+```{r}
+
+# option 1
+
+df |> 
+  filter(condition)
+#filter is built to know that if you feed some data into it, it assumes the first argument
+
+
+# OPTION 2 but you can also specify the data with (data, condition)
+
+filter(dataframe, condition)
+
+```
+
+# Functions Meet For Loops
+
+```{r}
+
+# write a function that iterates every variable in the functions prints out a mean and then pull out column names , iterating over columns of a data frame
+
+means_over_columns <- function(df) {
+  for (i in seq(df)){
+    col_mean <- mean(df[[i]], na.rm= TRUE)
+    column_name <- colnames(df[i])
+    print(paste("The mean value of", column_name, "is", col_mean))
+  }
+}
+
+# now using a data frame we can use the function to calculate the means
+
+means_over_columns(df = mtcars)
+means_over_columns(df = faithful)
+
+# essentially creating the apply function
+# calling columns from data frame need double brackets
+# colnames is a specific function to print out column names
+# col_mean calculates a the column means
+
+```
+
