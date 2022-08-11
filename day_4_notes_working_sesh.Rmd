@@ -176,3 +176,232 @@ means_over_columns(df = faithful)
 
 ```
 
+
+# Example using a nested for loop with a matrix
+
+```{r}
+
+fish_color <- c("red", "blue")
+fish_count <- c(1, 2)
+
+fish_seus <- matrix(nrow = length(fish_color), ncol = length(fish_count))
+
+for(i in seq_along(fish_color)){
+  for (j in seq_along(fish_count)){
+    color_count <- paste(fish_color[i], fish_count[j])
+    fish_seus [j, i] <- color_count 
+  }
+}
+
+fish_seus
+
+
+```
+
+Example - nested for loops part 2
+
+```{r}
+
+clothing <- c("shirt", "pants", "shoes")
+color <- c("purple", "red", "blue", "white")
+
+our_clothes <- matrix(nrow = length(color), ncol = length(clothing))
+
+for(i in seq(clothing)){
+  for (j in seq_along(color)){
+    clothing_details <- paste(color[j], clothing[i])
+    our_clothes[j,i] <- clothing_details
+  }
+}
+
+
+our_clothes
+
+```
+
+
+# Shortcut for Functions
+
+```{r}
+
+# if you just write the right hand side of the function then do command + option + x 
+
+my_shortcut <- function(oranges, rainbows) {
+  (oranges * rainbows / 2.4)^2
+}
+
+```
+
+
+# Logistic growth
+Modeling a population over a time and varying growth rate
+
+```{r}
+
+logistic_growth <- function(K, N0, r, time) {
+  K / (1 + ((K - N0) / N0) * exp(-r * time))
+}
+
+# Testing the function:
+
+logistic_growth(K = 5000, N0 = 100, r = 0.07, time = 42)
+
+```
+
+
+```{r}
+
+# Iterating over time now
+
+time_vec <- seq(from = 0, to = 35, by = 0.1)
+
+pop_35 <- logistic_growth(N0 = 40, time = time_vec, K = 8000, r = 0.3)
+
+# created a seq of time and we have two separate vectors for time_vec and pop_35 - need to combine
+
+pop_time35_df <- data.frame (time_vec, pop_35)
+
+# data.frame will combine two vectors WITH the same length
+
+```
+
+Plotting the data frame of the change in population over time of the parameter of time
+
+```{r}
+
+ggplot(data = pop_time35_df, aes(x = time_vec, y = pop_35)) + geom_line(color = "pink") + labs(title = "Population Over Time")
+
+# need to tell it three things, 1. that it is a ggplot, data and x and y axis, and what type of plot
+
+```
+
+# Another way to do this same thing with a for loop
+
+```{r}
+
+pop_35_vec <- vector(mode = "numeric", length = length(time_vec))
+
+for (i in seq_along(time_vec)){
+  population <- logistic_growth(N0 = 100, K = 6000, r =0.27, time = time_vec[i])
+  pop_35_vec[i] <- population
+}
+
+```
+
+# What if we wanted to check out the curves for multiple growth rates?
+Now extending this over to iterate over a range of growth rates
+
+```{r}
+# creating a sequence for population growth rate
+
+r_seq <- seq(from = 0.2, to = 0.4, by = 0.01)
+
+```
+
+```{r}
+# first create empty matrix
+
+out_matrix <- matrix(nrow = length(time_vec), ncol = length(r_seq))
+
+for (i in seq_along(r_seq)){
+  for (j in seq_along(time_vec)){
+    pop <- logistic_growth(N0 = 700, K = 80, r = r_seq[i], time = time_vec[j])
+    out_matrix[j, i] <- pop
+  }
+}
+
+# this populates the out matrix
+
+```
+
+# Now we have some wrangling to do
+
+```{r}
+
+# want to convert to data frame and bind it to the time vector to have one column with time and the subsequent population datas
+
+logistic_df <- data.frame(out_matrix, time = time_vec)
+# this adds a column time
+
+colnames(logistic_df) <- c(paste0("gr_", r_seq), "time")
+# updating column names, this is looking in the r sequence and then create names with like gr_0.2; NEED same number of column names
+
+
+# we now have a single variable for growth rate that is split up over multiple columns
+# tidy data structure is needed - going to make it so that each variable only has a single column (we have three different variables - population in its own column, single column for population
+
+# EVERY VARIABLE TO HAVE ITS OWN COLUMN
+
+# Using Pivot Longer
+
+logistic_df_long <- logistic_df |> 
+  pivot_longer(cols = -time, values_to = "population", names_to = "growth_rate")
+
+# we want to pivot longer for all of the populations except the time, first is what columns do you want to pivot longer? use excluding code to exclude time -time
+
+# we want each column to show growth rate and then the actual value of the growth sequence that we made
+
+
+```
+
+#Plotting this now
+
+```{r}
+
+ggplot(data = logistic_df_long, aes(x = time, y = population)) + geom_line()
+# this doesn't show the individual rate - seeing a very high frequenceline, want to tell the variable of the ascethic
+
+ggplot(data = logistic_df_long, aes(x = time, y = population)) + geom_line(aes(color = growth_rate)) 
+
+# this shows all of the different lines
+
+```
+
+
+# Making fucntion with warning and an error message
+
+Use `warning` to add a warning.
+Use `stop` to add an error.
+
+Calcuate the power of wind hitting a turbine
+
+$$ 
+P=0.3\rho A v^3
+$$
+rho = air density (kg / m^3)
+A = area covered by turbine (square meters)
+v = wind velocity (m/s)
+
+```{r}
+# writing a function to calculate the collectable wind power with these three units
+
+calc_windpower <- function(rho, radius, windspeed) {
+  
+  if (windspeed > 130) {
+    warning("Whoa, that is really fast are you sure?")
+  }
+  
+  if (rho > 1.225) {
+    warning("That air density is uspicious.")
+  }
+  
+  if (radius < 0) {
+    stop("Rotor radius must be a positive value (meters).")
+  }
+  
+  0.3*rho*pi*(radius^2)*(windspeed^3)
+}
+
+
+# checking this out
+calc_windpower(rho = 1.225, radius = 50, windspeed = 35)
+calc_windpower(rho = 1.225, radius = -6, windspeed = 15)
+calc_windpower(rho = 3.2, radius = 10, windspeed = 15)
+
+```
+
+
+
+Never mistake a non-error as correct!
+
+
